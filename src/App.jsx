@@ -2,6 +2,7 @@
 // import reactLogo from "./assets/react.svg";
 // import viteLogo from "/vite.svg";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import {
   Signup,
   Login,
@@ -16,6 +17,7 @@ function App() {
   return (
     <>
       <Router>
+        <ToastContainer />
         <Routes>
           <Route path="/" element={<Signup />} />
           <Route path="/login" element={<Login />} />
