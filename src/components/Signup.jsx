@@ -1,11 +1,15 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [form, setForm] = React.useState({
-    name: "",
+    lastName: "",
     firstName: "",
     password: "",
-    passwordConfirm: "",
+    password2: "",
     email: "",
   });
   const [error, setError] = React.useState("");
@@ -17,31 +21,54 @@ const Signup = () => {
     setSuccess("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation frontend
     if (
-      !form.name ||
+      !form.lastName ||
       !form.firstName ||
       !form.password ||
-      !form.passwordConfirm ||
+      !form.password2 ||
       !form.email
     ) {
       setError("All fields are required.");
       return;
     }
-    if (form.password !== form.passwordConfirm) {
+
+    if (form.password !== form.password2) {
       setError("Passwords do not match.");
       return;
     }
-    // TODO: Add API call here
-    setSuccess("Account created successfully!");
-    setForm({
-      name: "",
-      firstName: "",
-      password: "",
-      passwordConfirm: "",
-      email: "",
-    });
+
+    try {
+      const payload = {
+        email: form.email,
+        first_name: form.firstName, // correspond à first_name attendu
+        last_name: form.lastName, // correspond à last_name attendu
+        password: form.password,
+        password2: form.password2,
+      };
+
+      const res = await axios.post(
+        "http://localhost:8000/api/register/",
+        payload
+      );
+
+      if (res && res.status === 201) {
+        toast.success(res.data.message || "Account created successfully!");
+        navigate("/otp/verify-email");
+      } else {
+        toast.error("Unexpected response from server.");
+      }
+    } catch (err) {
+      if (err.response) {
+        console.log("Backend error:", err.response.data);
+        toast.error(JSON.stringify(err.response.data));
+      } else {
+        toast.error("Server unreachable. Check your backend URL.");
+      }
+    }
   };
 
   return (
@@ -52,18 +79,6 @@ const Signup = () => {
         {success && <div className="text-green-600">{success}</div>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-y-4 w-full">
           <div className="flex flex-col items-start">
-            <label htmlFor="name">Name:</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              className="border rounded text-gray-700 px-2 py-1 w-full"
-              value={form.name}
-              onChange={handleChange}
-              autoComplete="off"
-            />
-          </div>
-          <div className="flex flex-col items-start">
             <label htmlFor="firstName">First Name:</label>
             <input
               id="firstName"
@@ -71,6 +86,18 @@ const Signup = () => {
               type="text"
               className="border rounded text-gray-700 px-2 py-1 w-full"
               value={form.firstName}
+              onChange={handleChange}
+              autoComplete="off"
+            />
+          </div>
+          <div className="flex flex-col items-start">
+            <label htmlFor="lastName">Last Name:</label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              className="border rounded text-gray-700 px-2 py-1 w-full"
+              value={form.lastName}
               onChange={handleChange}
               autoComplete="off"
             />
@@ -85,16 +112,17 @@ const Signup = () => {
               value={form.password}
               onChange={handleChange}
               autoComplete="new-password"
+              placeholder="*****"
             />
           </div>
           <div className="flex flex-col items-start">
-            <label htmlFor="passwordConfirm">Password Confirmation:</label>
+            <label htmlFor="password2">Password Confirmation:</label>
             <input
-              id="passwordConfirm"
-              name="passwordConfirm"
+              id="password2"
+              name="password2"
               type="password"
               className="border rounded text-gray-700 px-2 py-1 w-full"
-              value={form.passwordConfirm}
+              value={form.password2}
               onChange={handleChange}
               autoComplete="new-password"
               placeholder="*****"
