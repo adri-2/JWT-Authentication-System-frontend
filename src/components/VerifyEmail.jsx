@@ -1,17 +1,26 @@
-import React, { useState } from "react";
+import axios from "axios";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function VerifyEmail() {
+  const navigator = useNavigate();
   const [otp, setOtp] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!otp.trim()) {
-      setMessage("Please enter the OTP code.");
-      return;
+    if (otp) {
+      const response = await axios.post("http://localhost:8000/api/verify/", {
+        otp: otp,
+      });
+      if (response.status === 200) {
+        toast.success(response.data.message);
+        navigator("/login");
+      } else {
+        toast.error("cote otp is not correct.");
+      }
     }
-    // Add your OTP verification logic here
-    setMessage("OTP submitted!");
   };
 
   return (

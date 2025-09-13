@@ -1,12 +1,51 @@
+import axios from "axios";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState(""); // <-- ajouté
+  const [isLoading, setIsLoading] = useState(false); // <-- ajouté
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
+
+    if (!email || !password) {
+      setError("All fields are required.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const payload = { email, password };
+      const res = await axios.post("http://localhost:8000/api/login/", payload);
+
+      setIsLoading(false);
+
+      const user = { email: res.data.email, full_name: res.data.full_name };
+      if (res.status === 200) {
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("access", JSON.stringify(res.data.access_token));
+        localStorage.setItem("refresh", JSON.stringify(res.data.refresh_token));
+        toast.success(res.data.message || "Login successful!");
+        navigate("/profile");
+      } else {
+        toast.error(res.data.error || "Invalid credentials.");
+      }
+    } catch (err) {
+      setIsLoading(false);
+      if (err.response) {
+        console.log("Backend error:", err.response.data);
+        toast.error(JSON.stringify(err.response.data));
+      } else {
+        toast.error("Server unreachable. Check your backend URL.");
+      }
+    }
   };
 
   return (
@@ -15,9 +54,13 @@ function Login() {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow-md w-full max-w-sm"
       >
+        {isLoading && <p>Loading ....</p>}
+        {error && <p className="text-red-600 mb-4">{error}</p>}
+
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+
         <div className="mb-4 flex flex-col items-start justify-start">
-          <label className="block mb-1 text-gray-700" htmlFor="email">
+          <label htmlFor="email" className="block mb-1 text-gray-700">
             Email
           </label>
           <input
@@ -30,8 +73,9 @@ function Login() {
             autoComplete="username"
           />
         </div>
+
         <div className="mb-6 items-start justify-start flex flex-col">
-          <label className="block mb-1 text-gray-700" htmlFor="password">
+          <label htmlFor="password" className="block mb-1 text-gray-700">
             Password
           </label>
           <input
@@ -44,6 +88,7 @@ function Login() {
             autoComplete="current-password"
           />
         </div>
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"

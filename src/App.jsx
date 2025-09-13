@@ -23,7 +23,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/otp/verify-email" element={<VerifyEmail />} />
           <Route path="/forget-password" element={<ForgetPassword />} />
-          <Route path="/dashboard" element={<Profile />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Router>
       {/* <div className="bg-amber-950 h-40 w-40"></div> */}
